@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BTC Cycle Desk</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <div class="brand">Bitcoin cycle desk</div>
+      <h1>Where is BTC in the cycle?</h1>
+      <div class="sub" id="asof">Loading…</div>
+    </div>
+    <div class="px">
+      <div class="price" id="price">—</div>
+      <div class="chg-row" id="chgRow">
+        <span id="chgD"></span>
+        <span id="chgW"></span>
+        <span id="chgM"></span>
+        <span id="chgY"></span>
+      </div>
+      <div class="sub" id="athLine"></div>
+      <div class="sub" id="lowLine"></div>
+    </div>
+  </header>
+
+  <div class="grade-wrap" id="gradeCard">
+    <div class="grade-pill" id="gradeName">—</div>
+    <div>
+      <div id="gradeWhy"></div>
+      <div class="sub" id="gradeIf"></div>
+    </div>
+  </div>
+  <div class="banner" id="banner">Loading…</div>
+  <p class="plain" id="plainRead"></p>
+
+  <main>
+    <section class="card span2" id="lookAhead">
+      <h2>Look ahead — power law and realized price</h2>
+      <p class="explain">These lines only depend on Bitcoin’s age. Pick a date and you get floor / trend / ceiling. Realized price is left off — it does not follow a clean yearly rate.</p>
+      <div class="offsets">
+        <label>Months ahead <input type="number" id="laMonths" value="12" min="1" max="120" /></label>
+        <label>Or date <input type="date" id="laDate" /></label>
+      </div>
+      <table class="kv" id="laTable"></table>
+      <p class="note" id="laNote"></p>
+    </section>
+
+    <section class="card span2">
+      <h2>Realized price — did this cycle tag it?</h2>
+      <p class="explain">Realized price is a rough average of what holders paid. In prior cycles, spot has dropped to or under that line during the bear. This card asks whether that washout has happened yet.</p>
+      <table class="kv" id="rpNow"></table>
+      <table class="kv" id="cycleLow"></table>
+      <table class="ledger" id="rpCycles"></table>
+      <p class="note" id="rpStory"></p>
+    </section>
+
+    <section class="card span2">
+      <h2>Accumulation buys</h2>
+      <p class="explain"><b>Anchor</b> monthly (rare). <b>Build</b> weekly. <b>Pulse</b> daily — noise unless Build agrees. Settings are fixed at buy 90 / sell 20.</p>
+      <div class="toolbar">
+        <label>Show last
+          <select id="showN">
+            <option value="3">3 buys</option>
+            <option value="5" selected>5 buys</option>
+            <option value="10">10 buys</option>
+          </select>
+        </label>
+        <span class="sub" id="hitCounts"></span>
+      </div>
+      <div id="stackRead" class="banner" style="margin:0 14px 12px"></div>
+      <div class="sig-grid" id="sigGrid"></div>
+    </section>
+
+    <section class="card">
+      <h2>Cycle calendar</h2>
+      <p class="explain">Day-count search boxes after each halving. A window is not a guarantee.</p>
+      <table class="ledger" id="ledger"></table>
+    </section>
+
+    <section class="card">
+      <h2>If the low has not shown up</h2>
+      <p class="explain">If the green box ends with no confirmed low, ignore the date and watch realized price, the 50-week average, and Build buys.</p>
+      <table class="kv" id="playbook"></table>
+      <p class="next" id="playbookNow"></p>
+    </section>
+
+    <section class="card">
+      <h2>Value check</h2>
+      <p class="explain">Power law is the long-term trend from Bitcoin’s age.</p>
+      <table class="kv" id="metrics"></table>
+    </section>
+
+    <section class="card">
+      <h2>Location lanes</h2>
+      <div class="lanes" id="lanes"></div>
+    </section>
+  </main>
+  <footer class="note" style="text-align:center;padding-bottom:28px">
+    Cycle map, not a trade alert and not financial advice. Signal lists and realized-price history update when site data is rebuilt.
+  </footer>
+  <script src="engine.js?v=20260908j"></script>
+  <script src="app.js?v=20260908j"></script>
+</body>
+</html>
