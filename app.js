@@ -309,19 +309,11 @@ function renderLookAhead() {
   const tbl = document.getElementById("laTable");
   const note = document.getElementById("laNote");
   if (!tbl) return;
-  const monthsEl = document.getElementById("laMonths");
   const dateEl = document.getElementById("laDate");
-  let target;
-  if (dateEl && dateEl.value) target = new Date(dateEl.value + "T00:00:00Z").getTime();
-  else {
-    const m = monthsEl ? +monthsEl.value || 12 : 12;
-    const d = new Date();
-    d.setUTCMonth(d.getUTCMonth() + m);
-    target = d.getTime();
-    if (dateEl && !dateEl.value) {
-      dateEl.value = new Date(target).toISOString().slice(0, 10);
-    }
-  }
+  if (dateEl && !dateEl.value) dateEl.value = new Date().toISOString().slice(0, 10);
+  const target = dateEl && dateEl.value
+    ? new Date(dateEl.value + "T00:00:00Z").getTime()
+    : Date.now();
   const pl = powerLaw(target, state.price);
   const px = state.price;
   const futMult = px && pl.trend ? px / pl.trend : null;
@@ -436,6 +428,17 @@ function renderSignals() {
 }
 
 
+
+async function fetchJson(paths) {
+  for (const p of paths) {
+    try {
+      const r = await fetch(p);
+      if (r.ok) return await r.json();
+    } catch (e) {}
+  }
+  return null;
+}
+
 async function pullRecentDaily() {
   const url = "https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1d&range=6mo";
   try {
@@ -513,9 +516,8 @@ async function loadFeeds() {
 
   if (state.rp == null || state.mvrv == null) {
     try {
-      const snap = await fetch("data/onchain.json");
-      if (snap.ok) {
-        const j = await snap.json();
+      const j = await fetchJson(["data/onchain.json", "onchain.json"]);
+      if (j) {
         if (state.rp == null) state.rp = j.realizedPrice;
         if (state.mvrv == null) state.mvrv = j.mvrv;
         state.rpAsOf = j.asOf || "snapshot";
@@ -523,21 +525,21 @@ async function loadFeeds() {
     } catch (e) { console.warn("onchain snapshot", e); }
   }
 
-  try {
-    const d = await fetch("data/btc-daily.json");
-    if (d.ok) state.daily = await d.json();
-  } catch (e) { console.warn("daily", e); }
+  state.daily = await fetchJson(["data/btc-daily.json", "btc-daily.json"]);
   await pullRecentDaily();
   try {
-    const s = await fetch("data/signals.json");
-    if (s.ok && !state.daily) state.signals = await s.json();
+    const s = await fetchJson(["data/signals.json", "signals.json"]);
+    if (s && !state.daily) state.signals = s;
   } catch (e) { console.warn("signals", e); }
   recomputeLive();
   try {
-    const r = await fetch("data/rp-cycles.json");
-    if (r.ok) state.rpCycles = await r.json();
+    const rc = await fetchJson(["data/rp-cycles.json", "rp-cycles.json"]);
+    if (rc) state.rpCycles = rc;
   } catch (e) { console.warn("rp cycles", e); }
 
+  if (!state.price && state.daily && state.daily.length) {
+    state.price = state.daily[state.daily.length - 1].c;
+  }
   if (!state.price) state.price = 78339;
   markRpIfTagged();
   render();
@@ -546,7 +548,7 @@ async function loadFeeds() {
 function bind() {
   const showN = document.getElementById("showN");
   if (showN) showN.addEventListener("change", render);
-  ["laMonths", "laDate"].forEach(id => {
+  ["laDate"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener("input", render);
   });
