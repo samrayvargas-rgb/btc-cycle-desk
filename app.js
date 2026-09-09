@@ -488,15 +488,30 @@ function markRpIfTagged() {
   }
 }
 
+
+async function tryPrice() {
+  const attempts = [
+    ["https://api.coinbase.com/v2/prices/BTC-USD/spot", j => +j.data.amount],
+    ["https://api.kraken.com/0/public/Ticker?pair=XBTUSD", j => +j.result.XXBTZUSD.c[0]],
+    ["https://blockchain.info/ticker", j => +j.USD.last],
+    ["https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true", j => {
+      if (j.bitcoin && j.bitcoin.usd_24h_change != null) state.chg = j.bitcoin.usd_24h_change;
+      return +j.bitcoin.usd;
+    }],
+  ];
+  for (const [url, pick] of attempts) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) continue;
+      const n = pick(await r.json());
+      if (n && n > 1000) return n;
+    } catch (e) {}
+  }
+  return null;
+}
+
 async function loadFeeds() {
-  try {
-    const r = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true");
-    if (r.ok) {
-      const j = await r.json();
-      state.price = j.bitcoin.usd;
-      state.chg = j.bitcoin.usd_24h_change;
-    }
-  } catch (e) { console.warn("price feed", e); }
+  state.price = await tryPrice();
 
   try {
     const [rp, mv] = await Promise.all([
@@ -565,14 +580,8 @@ function recomputeLive() {
 }
 
 setInterval(async () => {
-  try {
-    const r = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true");
-    if (r.ok) {
-      const j = await r.json();
-      state.price = j.bitcoin.usd;
-      state.chg = j.bitcoin.usd_24h_change;
-    }
-  } catch (e) {}
+  const p = await tryPrice();
+  if (p) state.price = p;
   recomputeLive();
   render();
 }, 60000);
