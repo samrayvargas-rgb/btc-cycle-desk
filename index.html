@@ -8,7 +8,7 @@
 </head>
 <body>
   <nav class="topnav" id="topnav">
-    <a href="#gradeCard">Grade</a>
+    <a href="#rails">Rails</a>
     <a href="#lookAhead">Power law</a>
     <a href="#rp">Realized</a>
     <a href="#signals">Signals</a>
@@ -36,17 +36,17 @@
     </div>
   </header>
 
-  <div class="grade-wrap" id="gradeCard">
-    <div class="grade-pill" id="gradeName">—</div>
-    <div>
-      <div id="gradeWhy"></div>
-      <div class="sub" id="gradeIf"></div>
-    </div>
-  </div>
   <div class="banner" id="banner">Loading…</div>
   <p class="plain" id="plainRead"></p>
 
   <main>
+    <section class="card span2" id="rails">
+      <h2>Where spot sits — five rails</h2>
+      <p class="explain">These are not buy/don’t-buy grades. They say how picky to be. <b>Open</b> = at or under that rail. <b>Favorable</b> = within 20% above. <b>Selective</b> = 20–40% above (add with a signal). <b>Tactical</b> = more than 40% above (location is not the reason).</p>
+      <table class="ledger" id="railTable"></table>
+      <p class="note" id="railMix"></p>
+      <p class="note" id="railFwd"></p>
+    </section>
     <section class="card span2" id="lookAhead">
       <h2>Look ahead — power law and realized price</h2>
       <p class="explain">These lines only depend on Bitcoin’s age. Pick a date and you get floor / trend / ceiling. Realized price is left off — it does not follow a clean yearly rate.</p>
@@ -68,7 +68,8 @@
 
     <section class="card span2" id="signals">
       <h2>Accumulation buys</h2>
-      <p class="explain"><b>Anchor</b> monthly (rare). <b>Build</b> weekly. <b>Pulse</b> daily — noise unless Build agrees. Settings are fixed at buy 90 / sell 20.</p>
+      <p class="explain"><b>Anchor</b> monthly (rare). <b>Build</b> weekly. <b>Pulse</b> daily — noise unless Build agrees. Settings are fixed at buy 90 / sell 20. Above the 50-week, Anchors usually do not print — use Build, treat Pulse as noise unless Build agrees.</p>
+      <div class="banner" id="last24" style="margin:10px 14px 8px">Checking last 24 hours…</div>
       <div class="toolbar">
         <label>Show last
           <select id="showN">
@@ -85,8 +86,11 @@
 
     <section class="card" id="calendar">
       <h2>Cycle calendar</h2>
-      <p class="explain">Day-count search boxes after each halving. A window is not a guarantee.</p>
+      <p class="explain">Toggle the clock you want. Halving boxes are search periods, not guarantees. Seasonality is only where past 1-year returns clustered better or worse — not a predicted top or bottom.</p>
+      <label class="chk" style="display:block;padding:8px 14px"><input type="radio" name="calMode" value="halving" checked /> Halving windows</label>
+      <label class="chk" style="display:block;padding:8px 14px"><input type="radio" name="calMode" value="season" /> Best / worst 3 months to add</label>
       <table class="ledger" id="ledger"></table>
+      <p class="note" id="seasonNote"></p>
     </section>
 
     <section class="card" id="playbookCard">
@@ -110,7 +114,7 @@
   <footer class="note" style="text-align:center;padding-bottom:28px">
     Cycle map, not a trade alert and not financial advice. Signal lists and realized-price history update when site data is rebuilt.
   </footer>
-  <script src="engine.js?v=fix1"></script>
-  <script src="app.js?v=fix1"></script>
+  <script src="engine.js?v=rails1"></script>
+  <script src="app.js?v=rails1"></script>
 </body>
 </html>

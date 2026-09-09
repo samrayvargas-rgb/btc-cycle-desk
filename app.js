@@ -20,6 +20,8 @@ const state = {
   signals: null,
   daily: null,
   rpCycles: null,
+  fwd: null,
+  calMode: "halving",
 };
 
 function daysBetween(a, b) {
@@ -81,6 +83,89 @@ function locationGrade(pl, price, rp, mvrv, above50) {
     next = "Okay if the multiple compresses under 0.70×. Not Ideal if it pushes through 1.2× trend.";
   }
   return { name, why, next };
+}
+
+
+function railZone(price, level) {
+  if (price == null || level == null || level <= 0) return { name: "—", cls: "bg-gray", pct: null };
+  if (price <= level) return { name: "Open", cls: "bg-lime", pct: (price / level - 1) * 100 };
+  const pct = (price / level - 1) * 100;
+  if (pct <= 20) return { name: "Favorable", cls: "bg-lime", pct };
+  if (pct <= 40) return { name: "Selective", cls: "bg-yellow", pct };
+  return { name: "Tactical", cls: "bg-orange", pct };
+}
+
+function clockZone(bot, top) {
+  if (bot && bot.key === "inside") return { name: "Search", cls: "bg-lime", detail: bot.label };
+  if (top && top.key === "inside") return { name: "Trim watch", cls: "bg-orange", detail: top.label };
+  return { name: "Quiet", cls: "bg-gray", detail: "No halving search box" };
+}
+
+function fmtPctSigned(p) {
+  if (p == null || Number.isNaN(p)) return "—";
+  const s = p >= 0 ? "+" : "";
+  return s + p.toFixed(0) + "%";
+}
+
+function renderRails(pl, price, bot, topPrinted) {
+  const tbl = document.getElementById("railTable");
+  const mix = document.getElementById("railMix");
+  const fwdEl = document.getElementById("railFwd");
+  if (!tbl) return;
+  const sig = state.signals || {};
+  const rpZ = railZone(price, state.rp);
+  const flZ = railZone(price, pl.floor);
+  const w200 = railZone(price, sig.sma200w);
+  const w50 = railZone(price, sig.sma50w);
+  const ck = clockZone(bot, { key: "printed" }); // top already printed this cycle
+  const clock = bot.key === "inside" ? { name: "Search", cls: "bg-lime", detail: bot.label }
+    : { name: "Quiet", cls: "bg-gray", detail: "Between boxes" };
+  const row = (label, level, z, extra="") => `<tr>
+    <td>${label}</td>
+    <td>${level == null ? "—" : fmtMoney(level)}</td>
+    <td>${z.pct == null && z.name !== "Search" && z.name !== "Quiet" && z.name !== "Trim watch" ? "—" : (z.detail || fmtPctSigned(z.pct))}</td>
+    <td>${pill(z.name, z.cls)}</td>
+    <td class="sub">${extra}</td>
+  </tr>`;
+  tbl.innerHTML = `<tr><th>Rail</th><th>Level</th><th>Spot vs it</th><th>Zone</th><th></th></tr>
+    ${row("Realized price", state.rp, rpZ, "Holder cost basis")}
+    ${row("Power-law floor", pl.floor, flZ, "Long-term cheap line")}
+    ${row("200-week avg", sig.sma200w, w200, "Cycle trend")}
+    ${row("50-week avg", sig.sma50w, w50, w50.name === "Open" ? "Anchors can print" : "Anchors usually off — use Build")}
+    <tr><td>Halving clock</td><td>day ${bot.d}</td><td>${clock.detail}</td><td>${pill(clock.name, clock.cls)}</td><td class="sub">Search = bottom window</td></tr>`;
+  if (mix) {
+    mix.textContent = `RP ${rpZ.name} · Floor ${flZ.name} · 200w ${w200.name} · 50w ${w50.name} · Clock ${clock.name}. Stretching away from RP is not a veto — it means buy signals, not location.`;
+  }
+  if (fwdEl && state.fwd && state.fwd.rails) {
+    const bits = [];
+    const pick = (railKey, zoneName) => {
+      const z = (state.fwd.rails[railKey] || {})[zoneName.toLowerCase()];
+      if (!z) return;
+      bits.push(`${railKey} ${zoneName}: 1y median ${z.med}% (win ${z.win}%, n=${z.n})`);
+    };
+    pick("floor", flZ.name);
+    pick("50w", w50.name);
+    pick("200w", w200.name);
+    fwdEl.textContent = bits.length
+      ? "If you buy here, history a year later: " + bits.join(" · ") + ". Early-floor samples are inflated by 2011–2013. Not a forecast."
+      : "";
+  }
+}
+
+function last24Line() {
+  const el = document.getElementById("last24");
+  if (!el) return;
+  const sig = state.signals;
+  if (!sig) { el.textContent = "Last 24h: history not loaded yet."; return; }
+  const cut = Date.now() / 1000 - 86400;
+  const hit = (s) => (s.lastBuys || []).some(b => b.t >= cut) || s.liveBuy;
+  const a = hit(sig.anchor), b = hit(sig.build), p = hit(sig.pulse);
+  const parts = [];
+  parts.push(p ? "Pulse buy" : "no Pulse");
+  parts.push(b ? "Build buy" : "no Build");
+  parts.push(a ? "Anchor buy" : "no Anchor");
+  const above = sig.above50w;
+  el.textContent = "Last 24h: " + parts.join(" · ") + (above ? ". Above 50-week — Anchors not expected." : ".");
 }
 
 function settings() {
@@ -183,17 +268,8 @@ function render() {
   }
 
 
-  const above50 = state.signals ? state.signals.above50w : null;
-  const grade = locationGrade(pl, price, state.rp, state.mvrv, above50);
-  const gName = document.getElementById("gradeName");
-  const gWhy = document.getElementById("gradeWhy");
-  const gIf = document.getElementById("gradeIf");
-  if (gName) {
-    gName.textContent = grade.name;
-    gName.style.color = ({Ideal:"#84cc16", Good:"#a3e635", Okay:"#facc15", Neutral:"#94a3b8", "Not Ideal":"#fb923c"})[grade.name] || "#e8edf5";
-  }
-  if (gWhy) gWhy.textContent = grade.why;
-  if (gIf) gIf.textContent = grade.next;
+  renderRails(pl, price, bot, top);
+  last24Line();
 
   document.getElementById("banner").innerHTML =
     `<strong>Now:</strong> Bottom window is <em>${bot.key}</em> — ${bot.label}.
@@ -214,7 +290,28 @@ function render() {
       <td>${pill(h.bot, pillClass(h.bot))}<div class="sub">${h.botNote}</div></td>
     </tr>`).join("");
 
-  document.getElementById("ledger").innerHTML = `
+
+  const seasonNote = document.getElementById("seasonNote");
+  const mode = (document.querySelector("input[name=calMode]:checked") || {}).value || "halving";
+  state.calMode = mode;
+  if (mode === "season" && seasonNote) {
+    const sn = (state.fwd && state.fwd.season) || {
+      best: [{name:"Feb"},{name:"Nov"},{name:"Dec"}],
+      worst: [{name:"Mar"},{name:"May"},{name:"Jun"}]
+    };
+    const nowM = new Date().getUTCMonth() + 1;
+    const names = {1:"Jan",2:"Feb",3:"Mar",4:"Apr",5:"May",6:"Jun",7:"Jul",8:"Aug",9:"Sep",10:"Oct",11:"Nov",12:"Dec"};
+    const best = sn.best.map(x => x.name).join(", ");
+    const worst = sn.worst.map(x => x.name).join(", ");
+    document.getElementById("ledger").innerHTML = `
+      <tr><th></th><th>Months</th><th>How to use</th></tr>
+      <tr><td>Best 3 to scale in</td><td>${best}</td><td class="sub">Higher median 1-year return historically. Not a bottom call.</td></tr>
+      <tr><td>Worst 3 to add size</td><td>${worst}</td><td class="sub">Softer 1-year follow-through. Not a top call.</td></tr>
+      <tr><td>This month</td><td>${names[nowM]}</td><td class="sub">${sn.best.some(x=>x.m===nowM)?"In the historically better set.":sn.worst.some(x=>x.m===nowM)?"In the historically softer set.":"Neither extreme."}</td></tr>`;
+    seasonNote.textContent = (sn.note || "") + " Scale-in months are not a substitute for RP / 50w / signals.";
+  } else if (seasonNote) seasonNote.textContent = "";
+
+  if (mode !== "season") document.getElementById("ledger").innerHTML = `
     <tr><th>Cycle</th><th>Top print</th><th>Bottom print</th></tr>
     ${rows}
     <tr>
@@ -550,6 +647,7 @@ async function loadFeeds() {
   try {
     const rc = await fetchJson(["data/rp-cycles.json", "rp-cycles.json"]);
     if (rc) state.rpCycles = rc;
+  state.fwd = await fetchJson(["data/fwd-stats.json", "fwd-stats.json"]);
   } catch (e) { console.warn("rp cycles", e); }
 
   if (!state.price && state.daily && state.daily.length) {
@@ -567,6 +665,7 @@ function bind() {
     const el = document.getElementById(id);
     if (el) el.addEventListener("input", render);
   });
+  document.querySelectorAll("input[name=calMode]").forEach(el => el.addEventListener("change", render));
 }
 
 bind();
