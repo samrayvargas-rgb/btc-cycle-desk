@@ -86,9 +86,9 @@
 
     <section class="card" id="calendar">
       <h2>Cycle calendar</h2>
-      <p class="explain">Toggle the clock you want. Halving boxes are search periods, not guarantees. Seasonality is only where past 1-year returns clustered better or worse — not a predicted top or bottom.</p>
+      <p class="explain">Toggle the clock you want. Halving boxes are search periods, not guarantees. One view is the high/low search boxes. The other is 90-day stretches where daily adds helped or hurt a year later. Not a predicted top or bottom.</p>
       <label class="chk" style="display:block;padding:8px 14px"><input type="radio" name="calMode" value="halving" checked /> Halving windows</label>
-      <label class="chk" style="display:block;padding:8px 14px"><input type="radio" name="calMode" value="season" /> Best / worst 3 months to add</label>
+      <label class="chk" style="display:block;padding:8px 14px"><input type="radio" name="calMode" value="season" /> Best / worst 90 days on the halving clock</label>
       <table class="ledger" id="ledger"></table>
       <p class="note" id="seasonNote"></p>
     </section>
@@ -115,6 +115,6 @@
     Cycle map, not a trade alert and not financial advice. Signal lists and realized-price history update when site data is rebuilt.
   </footer>
   <script src="engine.js?v=rails1"></script>
-  <script src="app.js?v=rails1"></script>
+  <script src="app.js?v=rails2"></script>
 </body>
 </html>

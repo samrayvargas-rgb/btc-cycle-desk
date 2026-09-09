@@ -295,20 +295,23 @@ function render() {
   const mode = (document.querySelector("input[name=calMode]:checked") || {}).value || "halving";
   state.calMode = mode;
   if (mode === "season" && seasonNote) {
-    const sn = (state.fwd && state.fwd.season) || {
-      best: [{name:"Feb"},{name:"Nov"},{name:"Dec"}],
-      worst: [{name:"Mar"},{name:"May"},{name:"Jun"}]
-    };
-    const nowM = new Date().getUTCMonth() + 1;
-    const names = {1:"Jan",2:"Feb",3:"Mar",4:"Apr",5:"May",6:"Jun",7:"Jul",8:"Aug",9:"Sep",10:"Oct",11:"Nov",12:"Dec"};
-    const best = sn.best.map(x => x.name).join(", ");
-    const worst = sn.worst.map(x => x.name).join(", ");
+    const sw = (state.fwd && state.fwd.scaleWindows) || null;
+    const dH = daysBetween(LAST_HALVING, Date.now());
+    const inWin = (w) => w && dH >= w.start && dH <= w.end;
+    const late = sw && sw.bestLate;
+    const early = sw && sw.bestEarly;
+    const worst = sw && sw.worst;
+    const here = late && inWin(late) ? "Inside the late scale-in box."
+      : early && inWin(early) ? "Inside the early scale-in box."
+      : worst && inWin(worst) ? "Inside the historically weak add box."
+      : "Not inside a marked 90-day scale box (today is day " + dH + ").";
     document.getElementById("ledger").innerHTML = `
-      <tr><th></th><th>Months</th><th>How to use</th></tr>
-      <tr><td>Best 3 to scale in</td><td>${best}</td><td class="sub">Higher median 1-year return historically. Not a bottom call.</td></tr>
-      <tr><td>Worst 3 to add size</td><td>${worst}</td><td class="sub">Softer 1-year follow-through. Not a top call.</td></tr>
-      <tr><td>This month</td><td>${names[nowM]}</td><td class="sub">${sn.best.some(x=>x.m===nowM)?"In the historically better set.":sn.worst.some(x=>x.m===nowM)?"In the historically softer set.":"Neither extreme."}</td></tr>`;
-    seasonNote.textContent = (sn.note || "") + " Scale-in months are not a substitute for RP / 50w / signals.";
+      <tr><th>Window</th><th>Days after halving</th><th>1y after daily adds</th></tr>
+      <tr><td>Best late scale-in</td><td>${late ? late.start+"–"+late.end : "893–982"}</td><td class="sub">Worst cycle ~+125% · all three cycles positive. Near the bottom search box.</td></tr>
+      <tr><td>Best early scale-in</td><td>${early ? early.start+"–"+early.end : "99–188"}</td><td class="sub">Worst cycle ~+347%. Strong, but early-cycle size is a different trade than buying a bear.</td></tr>
+      <tr><td>Worst days to add size</td><td>${worst ? worst.start+"–"+worst.end : "510–599"}</td><td class="sub">Worst cycle ~−69% a year later. Overlaps the top search box.</td></tr>
+      <tr><td>Today</td><td>day ${dH}</td><td class="sub">${here}</td></tr>`;
+    seasonNote.textContent = "90-day blocks scored on 2012, 2016, and 2020. A window only counts if every cycle was in the same direction. Not a top/bottom call — it is where daily adds helped or hurt a year later.";
   } else if (seasonNote) seasonNote.textContent = "";
 
   if (mode !== "season") document.getElementById("ledger").innerHTML = `
