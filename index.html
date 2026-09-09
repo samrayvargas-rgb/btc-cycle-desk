@@ -7,6 +7,16 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <nav class="topnav" id="topnav">
+    <a href="#gradeCard">Grade</a>
+    <a href="#lookAhead">Power law</a>
+    <a href="#rp">Realized</a>
+    <a href="#signals">Signals</a>
+    <a href="#calendar">Calendar</a>
+    <a href="#playbook">If no low</a>
+    <a href="#value">Value</a>
+    <a href="#lanes">Lanes</a>
+  </nav>
   <header>
     <div>
       <div class="brand">Bitcoin cycle desk</div>
@@ -48,7 +58,7 @@
       <p class="note" id="laNote"></p>
     </section>
 
-    <section class="card span2">
+    <section class="card span2" id="rp">
       <h2>Realized price — did this cycle tag it?</h2>
       <p class="explain">Realized price is a rough average of what holders paid. In prior cycles, spot has dropped to or under that line during the bear. This card asks whether that washout has happened yet.</p>
       <table class="kv" id="rpNow"></table>
@@ -57,7 +67,7 @@
       <p class="note" id="rpStory"></p>
     </section>
 
-    <section class="card span2">
+    <section class="card span2" id="signals">
       <h2>Accumulation buys</h2>
       <p class="explain"><b>Anchor</b> monthly (rare). <b>Build</b> weekly. <b>Pulse</b> daily — noise unless Build agrees. Settings are fixed at buy 90 / sell 20.</p>
       <div class="toolbar">
@@ -74,26 +84,26 @@
       <div class="sig-grid" id="sigGrid"></div>
     </section>
 
-    <section class="card">
+    <section class="card" id="calendar">
       <h2>Cycle calendar</h2>
       <p class="explain">Day-count search boxes after each halving. A window is not a guarantee.</p>
       <table class="ledger" id="ledger"></table>
     </section>
 
-    <section class="card">
+    <section class="card" id="playbook">
       <h2>If the low has not shown up</h2>
       <p class="explain">If the green box ends with no confirmed low, ignore the date and watch realized price, the 50-week average, and Build buys.</p>
       <table class="kv" id="playbook"></table>
       <p class="next" id="playbookNow"></p>
     </section>
 
-    <section class="card">
+    <section class="card" id="value">
       <h2>Value check</h2>
       <p class="explain">Power law is the long-term trend from Bitcoin’s age.</p>
       <table class="kv" id="metrics"></table>
     </section>
 
-    <section class="card">
+    <section class="card" id="lanes">
       <h2>Location lanes</h2>
       <div class="lanes" id="lanes"></div>
     </section>
@@ -101,7 +111,7 @@
   <footer class="note" style="text-align:center;padding-bottom:28px">
     Cycle map, not a trade alert and not financial advice. Signal lists and realized-price history update when site data is rebuilt.
   </footer>
-  <script src="engine.js?v=20260908j"></script>
-  <script src="app.js?v=20260908j"></script>
+  <script src="engine.js?v=20260908k"></script>
+  <script src="app.js?v=20260908k"></script>
 </body>
 </html>

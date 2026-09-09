@@ -67,3 +67,26 @@ table { width:100%; border-collapse:collapse; }
 
 .grade-wrap { margin: 8px 24px 12px; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: #121722; display:flex; gap:16px; align-items:flex-start; }
 .grade-pill { font-size: 22px; font-weight: 750; letter-spacing: .02em; min-width: 110px; }
+
+html { scroll-behavior: smooth; }
+.topnav {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; gap: 4px; overflow-x: auto;
+  padding: 8px 16px;
+  background: #0b0d12ee;
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(8px);
+  scrollbar-width: thin;
+}
+.topnav a {
+  flex: 0 0 auto;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 12px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+.topnav a:hover { color: var(--text); border-color: var(--line); }
